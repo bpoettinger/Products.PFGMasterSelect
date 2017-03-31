@@ -1,0 +1,63 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.PFGMasterSelect">
+    
+  <five:registerPackage package="." initialize=".initialize" />
+
+  <!-- Register the installation GenericSetup extension profile -->
+  <genericsetup:registerProfile
+      name="default"
+      title="Products.PFGMasterSelect"
+      directory="profiles/default"
+      description="Plone Formgen Fields using Master Select Widgets"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+  
+    <!-- -*- extra stuff goes here -*- -->
+    <class class=".fields.FormMasterSelectStringField">
+        <require
+            permission="zope2.View"
+            interface=".interfaces.IFormMasterSelectStringField"
+            />
+    </class>
+
+    <class class=".fields.FormMasterMultiSelectStringField">
+        <require
+            permission="zope2.View"
+            interface=".interfaces.IFormMasterMultiSelectStringField"
+            />
+    </class>
+
+    <browser:page
+        for="Products.PloneFormGen.interfaces.IPloneFormGenForm"
+        name="setup_slaves"
+        class=".browser.SetupSlaves"
+        permission="zope.Public"
+        />
+
+    <browser:page
+        name="masterselect-jsonvalue-vocabulary"
+        for="Products.PloneFormGen.interfaces.IPloneFormGenForm"
+        class=".browser.JSONValuesForVocabularyChange"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        name="masterselect-jsonvalue-values"
+        for="Products.PloneFormGen.interfaces.IPloneFormGenForm"
+        class=".browser.JSONValuesForValueUpdate"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        name="masterselect-jsonvalue-toggle"
+        for="Products.PloneFormGen.interfaces.IPloneFormGenForm"
+        class=".browser.JSONValuesForToggle"
+        permission="zope2.View"
+        />
+
+</configure>

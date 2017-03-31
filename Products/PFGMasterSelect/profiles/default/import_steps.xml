@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<import-steps>
+ <import-step id="PFGMasterSelect" version="20081128-01"
+              handler="Products.PFGMasterSelect.setuphandlers.importVarious"
+              title="PFGDataGrid">
+  <dependency step="typeinfo"/>
+  Import PFGMasterSelect settings
+ </import-step>
+</import-steps>
