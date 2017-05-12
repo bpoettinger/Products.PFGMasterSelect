@@ -1,6 +1,7 @@
 from Products.ATContentTypes.content import schemata
 from Products.Archetypes import atapi
 from Products.Archetypes.Field import StringField
+from Products.CMFCore.permissions import View
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
 from Products.DataGridField import SelectColumn
@@ -49,6 +50,7 @@ class FormMasterSelectStringField(BaseFormField):
                                              searchable=False,
                                              required=False,
                                              vocabulary=None,
+                                             write_permission=View,
                                              widget=MasterSelectWidget(slave_fields=[]))
 
     def setSlave_fields(self, slave_fields):
@@ -109,6 +111,7 @@ class FormMasterMultiSelectStringField(BaseFormField):
                                             required=False,
                                             vocabulary=None,
                                             multiValued=True,
+                                            write_permission=View,
                                             widget=MasterMultiSelectWidget(slave_fields=[]))
 
     def setSlave_fields(self, slave_fields):
