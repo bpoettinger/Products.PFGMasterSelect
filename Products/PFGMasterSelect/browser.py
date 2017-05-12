@@ -1,10 +1,30 @@
 import json
+
+import logging
+
 import Products
 from App.Common import aq_base
 from Products.Archetypes import DisplayList
+from Products.Five import BrowserView
 from Products.MasterSelectWidget.browser import JSONValuesForAction, SetupSlaves
 from Products.PloneFormGen.content.form import FormFolder
 from zope.i18n import translate
+
+
+class Migration(BrowserView):
+
+    def fix_write_permissions(self):
+        catalog = self.context.portal_catalog
+
+        logger = logging.getLogger('PFGMasterSelect')
+
+        for brain in catalog(portal_type=('FormMasterSelectStringField', 'FormMasterMultiSelectStringField',)):
+            obj = brain.getObject()
+
+            from Products.CMFCore.permissions import View
+            obj.fgField.write_permission = View
+
+            logger.warning('Fixed write permission of object %s' % '/'.join(obj.getPhysicalPath()))
 
 
 class SetupSlaves(SetupSlaves):

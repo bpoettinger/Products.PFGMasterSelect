@@ -60,4 +60,12 @@
         permission="zope2.View"
         />
 
+    <browser:page
+        name="pfgmasterselect-fix-write-permissions"
+        for="*"
+        class=".browser.Migration"
+        attribute="fix_write_permissions"
+        permission="cmf.ManagePortal"
+        />
+
 </configure>
