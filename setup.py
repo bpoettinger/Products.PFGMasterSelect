@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-version = '0.1'
+version = '0.2'
 
 long_description = (
     read('README.txt')
@@ -43,12 +43,14 @@ setup(name='Products.PFGMasterSelect',
       classifiers=[
         'Framework :: Plone',
         'Intended Audience :: Developers',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         ],
-      keywords='',
-      author='',
-      author_email='',
-      url='http://svn.plone.org/svn/collective/',
+      keywords='Plone PloneFormGen MasterSelectWidget',
+      author='Bernhard Pöttinger',
+      author_email='bernhard.poettinger@tngtech.com',
+      url='https://github.com/bpoettinger/Products.PFGMasterSelect',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
       namespace_packages=['Products', ],
