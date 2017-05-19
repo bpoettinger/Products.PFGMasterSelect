@@ -12,7 +12,7 @@ def read(*rnames):
 version = '0.2'
 
 long_description = (
-    read('README.txt')
+    read('README.rst')
     + '\n' +
     'Change history\n'
     '**************\n'
@@ -32,7 +32,8 @@ long_description = (
     'Download\n'
     '********\n')
 
-tests_require = ['zope.testing']
+tests_require = ['zope.testing', 'plone.testing', 'plone.app.testing', 'mock']
+
 
 setup(name='Products.PFGMasterSelect',
       version=version,
@@ -57,7 +58,8 @@ setup(name='Products.PFGMasterSelect',
       include_package_data=True,
       zip_safe=False,
       install_requires=['setuptools',
-                        # -*- Extra requirements: -*-
+                        # -*- Extra requirements: -*-,
+                        'Products.PloneFormGen',
                         'Products.MasterSelectWidget',
                         'Products.DataGridField',
                         ],
