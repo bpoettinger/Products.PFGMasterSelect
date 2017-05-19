@@ -40,10 +40,10 @@ class JSONValuesForAction(JSONValuesForAction):
         # dictionary. On the other hand in case (b) there can be an arbitrary count of elements selected and all
         # elements are stored in dictionaries.
         if len(args) == 0 or isinstance(args[0], dict):
-            l = dict(values=[arg['val'] for arg in args if arg['selected']])
+            l = dict(values=[str(arg['val']) for arg in args if arg['selected']])
         else:
             assert len(args) == 1
-            l = dict(value=args[0])
+            l = dict(value=str(args[0]))
         g = dict(__builtins__=globals()['__builtins__'])
         return eval(method, g, l) if method else None
 
