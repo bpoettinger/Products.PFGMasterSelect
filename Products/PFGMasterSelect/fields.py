@@ -24,8 +24,10 @@ FormMasterSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema
                   columns=('name', 'action', 'vocab_method', 'toggle_method', 'hide_values'),
                   widget=DataGridWidget(label='Slave Fields',
                                         description='Configure actions applied on other fields of the Form Folder '
-                                                    'when changing this fields state. The new value of this field '
-                                                    'is available as "value" in vocab_method and toggle_method.',
+                                                    'when changing this fields state. vocab_method and toggle_method '
+                                                    'expect python expressions evaluating to a boolean. The new value '
+                                                    'of this field is available as "value" of type string in '
+                                                    'vocab_method and toggle_method.',
                                         columns={
                                               'name': SelectColumn('Name', 'getNameVocab'),
                                               'action': SelectColumn('Action', 'getActionVocab'),
@@ -84,9 +86,10 @@ FormMasterMultiSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.S
                   columns=('name', 'action', 'vocab_method', 'toggle_method', 'hide_values'),
                   widget=DataGridWidget(label='Slave Fields',
                                         description='Configure actions applied on other fields of the Form Folder '
-                                                    'when changing this fields state. The currently selected values of '
-                                                    'this field is available as "values" in vocab_method and '
-                                                    'toggle_method.',
+                                                    'when changing this fields state. vocab_method and toggle_method '
+                                                    'expect python expressions evaluating to a boolean. The selected '
+                                                    'values of this field are available as "values" of type list of '
+                                                    'strings in vocab_method and toggle_method.',
                                         columns={
                                          'name': SelectColumn('Name', 'getNameVocab'),
                                          'action': SelectColumn('Action', 'getActionVocab'),
