@@ -1,6 +1,5 @@
 from Products.ATContentTypes.content import schemata
 from Products.Archetypes import atapi
-from Products.Archetypes.Field import StringField
 from Products.CMFCore import Expression
 from Products.CMFCore.permissions import View
 from Products.DataGridField import DataGridField
