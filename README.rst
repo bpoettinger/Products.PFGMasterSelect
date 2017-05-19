@@ -22,6 +22,7 @@ common selection field does.
 
 Additionally it provides a configuration table that contains the MasterSelect
 configuration (see also MasterSelectWidget documentation for more detail):
+
 ``name`` (required)
     The target field's name
 ``action`` (required)
@@ -31,8 +32,13 @@ configuration (see also MasterSelectWidget documentation for more detail):
     * value: Set the target field's value to the result of the vocab_method
     * vocabulary: Set the target field's vocabulary to the result of the vocab_method
 ``vocab_method``
-    A python expression evaluating to a single value or collection
+    A python expression evaluating to a single value or collection. The currently set value (MasterSelect) or
+    values (MasterMultiSelect) are available via ``value`` and ``values`` respectively.
+    Example: Set the vocabulary of a selection field using ``['xyz' + v for v in values]``
 ``toggle_method``
-    A python expression evaluating to a boolean value. This method takes precedence to hide_values.
+    A python expression evaluating to a boolean value. This method takes precedence to hide_values. The currently set
+    value (MasterSelect) or values (MasterMultiSelect) are available via ``value`` and ``values`` respectively.
+    Example: Hide a field if the selected value has length 5 or equals ``foo`` using ``len(value) == 5 or value == 'foo'``
 ``hide_values``
-    The values that show/hide/enable/disable operate on.
+    The values that show/hide/enable/disable operate on
+    Example: Hide a field if the selected value is ``a`` or ``b`` using ``a,b``
