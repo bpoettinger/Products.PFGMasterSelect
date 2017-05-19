@@ -55,6 +55,7 @@ class FormMasterSelectStringField(BaseFormField):
 
     def setSlave_fields(self, slave_fields):
         self.Schema()['slave_fields'].set(self, slave_fields)
+        slave_fields = [field for field in slave_fields if field['toggle_method'] or field['vocab_method'] or field['hide_values']]
         self.fgField.widget.slave_fields = slave_fields
 
     def getActionVocab(self):
@@ -116,6 +117,7 @@ class FormMasterMultiSelectStringField(BaseFormField):
 
     def setSlave_fields(self, slave_fields):
         self.Schema()['slave_fields'].set(self, slave_fields)
+        slave_fields = [field for field in slave_fields if field['toggle_method'] or field['vocab_method'] or field['hide_values']]
         self.fgField.widget.slave_fields = slave_fields
 
     def getActionVocab(self):
