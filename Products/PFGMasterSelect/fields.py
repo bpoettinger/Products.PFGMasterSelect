@@ -1,6 +1,6 @@
 from Products.ATContentTypes.content import schemata
 from Products.Archetypes import atapi
-from Products.CMFCore import Expression
+from Products.CMFCore.Expression import Expression
 from Products.CMFCore.permissions import View
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
@@ -12,6 +12,43 @@ from Products.PloneFormGen.content.fieldsBase import BaseFormField, BaseFieldSch
 from zope.interface import implements
 from .interfaces import IFormMasterSelectStringField, IFormMasterMultiSelectStringField
 from Products.PFGMasterSelect.config import PROJECTNAME
+
+
+class FormMasterSelectFieldMixin:
+
+    def setSlave_fields(self, slave_fields):
+        self.Schema()['slave_fields'].set(self, slave_fields)
+
+        def compile_methods(field):
+            field = field.copy()
+            if 'toggle_method' in field:
+                toggle_method = field['toggle_method']
+                field['toggle_method'] = Expression('python:' + toggle_method) if toggle_method else None
+            if 'vocab_method' in field:
+                vocab_method = field['vocab_method']
+                field['vocab_method'] = Expression('python:' + vocab_method) if vocab_method else None
+            return field
+
+        self.fgField.widget.slave_fields = [compile_methods(field)
+                                            for field in slave_fields
+                                            if field.get('toggle_method')
+                                            or field.get('vocab_method')
+                                            or field.get('hide_values')]
+
+    def getActionVocab(self):
+        return atapi.DisplayList((
+            ('hide', 'Hide'),
+            ('show', 'Show'),
+            ('enable', 'Enable'),
+            ('disable', 'Disable'),
+            ('value', 'Value'),
+            ('vocabulary', 'Vocabulary'),
+        ))
+
+    def getNameVocab(self):
+        folder = self.aq_parent
+        fieldNames = [field.getName() for field in folder.fgFields()]
+        return atapi.DisplayList(zip(fieldNames, fieldNames))
 
 
 FormMasterSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema((
@@ -38,7 +75,7 @@ FormMasterSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema
 schemata.finalizeATCTSchema(FormMasterSelectFieldSchema, moveDiscussion=False)
 
 
-class FormMasterSelectStringField(BaseFormField):
+class FormMasterSelectStringField(BaseFormField, FormMasterSelectFieldMixin):
 
     implements(IFormMasterSelectStringField)
 
@@ -54,36 +91,6 @@ class FormMasterSelectStringField(BaseFormField):
                                              vocabulary=None,
                                              write_permission=View,
                                              widget=MasterSelectWidget(slave_fields=[]))
-
-    def setSlave_fields(self, slave_fields):
-        self.Schema()['slave_fields'].set(self, slave_fields)
-
-        def compile_methods(field):
-            field = field.copy()
-            if 'toggle_method' in field:
-                field['toggle_method'] = Expression.Expression('python:' + field['toggle_method']) if field['toggle_method'] else None
-            if 'vocab_method' in field:
-                field['vocab_method'] = Expression.Expression('python:' + field['vocab_method']) if field['vocab_method'] else None
-            return field
-
-        self.fgField.widget.slave_fields = [compile_methods(field)
-                                            for field in slave_fields
-                                            if field.get('toggle_method') or field.get('vocab_method') or field.get('hide_values')]
-
-    def getActionVocab(self):
-        return atapi.DisplayList((
-            ('hide', 'Hide'),
-            ('show', 'Show'),
-            ('enable', 'Enable'),
-            ('disable', 'Disable'),
-            ('value', 'Value'),
-            ('vocabulary', 'Vocabulary'),
-        ))
-
-    def getNameVocab(self):
-        folder = self.aq_parent
-        fieldNames = [field.getName() for field in folder.fgFields()]
-        return atapi.DisplayList(zip(fieldNames, fieldNames))
 
 
 FormMasterMultiSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema((
@@ -110,7 +117,7 @@ FormMasterMultiSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.S
 schemata.finalizeATCTSchema(FormMasterMultiSelectFieldSchema, moveDiscussion=False)
 
 
-class FormMasterMultiSelectStringField(BaseFormField):
+class FormMasterMultiSelectStringField(BaseFormField, FormMasterSelectFieldMixin):
 
     implements(IFormMasterMultiSelectStringField)
 
@@ -127,36 +134,6 @@ class FormMasterMultiSelectStringField(BaseFormField):
                                             multiValued=True,
                                             write_permission=View,
                                             widget=MasterMultiSelectWidget(slave_fields=[]))
-
-    def setSlave_fields(self, slave_fields):
-        self.Schema()['slave_fields'].set(self, slave_fields)
-
-        def compile_methods(field):
-            field = field.copy()
-            if 'toggle_method' in field:
-                field['toggle_method'] = Expression.Expression('python:' + field['toggle_method']) if field['toggle_method'] else None
-            if 'vocab_method' in field:
-                field['vocab_method'] = Expression.Expression('python:' + field['vocab_method']) if field['vocab_method'] else None
-            return field
-
-        self.fgField.widget.slave_fields = [compile_methods(field)
-                                            for field in slave_fields
-                                            if field.get('toggle_method') or field.get('vocab_method') or field.get('hide_values')]
-
-    def getActionVocab(self):
-        return atapi.DisplayList((
-            ('hide', 'Hide'),
-            ('show', 'Show'),
-            ('enable', 'Enable'),
-            ('disable', 'Disable'),
-            ('value', 'Value'),
-            ('vocabulary', 'Vocabulary'),
-        ))
-
-    def getNameVocab(self):
-        folder = self.aq_parent
-        fieldNames = [field.getName() for field in folder.fgFields()]
-        return atapi.DisplayList(zip(fieldNames, fieldNames))
 
 
 atapi.registerType(FormMasterSelectStringField, PROJECTNAME)
