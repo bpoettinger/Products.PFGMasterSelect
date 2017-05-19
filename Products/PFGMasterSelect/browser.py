@@ -5,8 +5,11 @@ import logging
 import Products
 from App.Common import aq_base
 from Products.Archetypes import DisplayList
+from Products.CMFCore import Expression
+from Products.CMFCore.Expression import getExprContext
 from Products.Five import BrowserView
 from Products.MasterSelectWidget.browser import JSONValuesForAction, SetupSlaves
+from Products.PageTemplates.Expressions import getEngine
 from Products.PloneFormGen.content.form import FormFolder
 from zope.i18n import translate
 
@@ -34,18 +37,21 @@ class SetupSlaves(SetupSlaves):
 class JSONValuesForAction(JSONValuesForAction):
 
     def evaluate_method(self, method, args):
+        assert method
+        assert isinstance(method, Expression.Expression)
         # Assumptions:
         # There are two possibilities: This is called on a (a) single select field or (b) multi select field.
         # In case (a) there should always be exactly one value, hence len(args) == 1, and it should not be a
         # dictionary. On the other hand in case (b) there can be an arbitrary count of elements selected and all
         # elements are stored in dictionaries.
         if len(args) == 0 or isinstance(args[0], dict):
-            l = dict(values=[str(arg['val']) for arg in args if arg['selected']])
+            data = dict(values=[str(arg['val']) for arg in args if arg['selected']])
         else:
             assert len(args) == 1
-            l = dict(value=str(args[0]))
-        g = dict(__builtins__=globals()['__builtins__'])
-        return eval(method, g, l) if method else None
+            data = dict(value=str(args[0]))
+
+        econtext = getEngine().getContext(data)
+        return method(econtext) if method else None
 
     def getSlaves(self, fieldname):
         assert isinstance(self.context, FormFolder)
@@ -62,7 +68,10 @@ class JSONValuesForAction(JSONValuesForAction):
 class JSONValuesForVocabularyChange(JSONValuesForAction):
 
     def computeJSONValues(self, slave, args):
-        vocabulary = self.evaluate_method(slave['vocab_method'], args)
+        method = slave['vocab_method']
+        vocabulary = self.evaluate_method(method, args) if method else ()
+        if not isinstance(vocabulary, (list, tuple,)):
+            vocabulary = (vocabulary,)
         vocabulary = [str(item) for item in vocabulary]
         vocabulary = DisplayList(zip(vocabulary, vocabulary))
 
@@ -77,16 +86,17 @@ class JSONValuesForVocabularyChange(JSONValuesForAction):
 class JSONValuesForValueUpdate(JSONValuesForAction):
 
     def computeJSONValues(self, slave, args):
-        value = self.evaluate_method(slave['vocab_method'], args)
+        method = slave['vocab_method']
+        value = self.evaluate_method(method, args) if method else None
         return json.dumps(translate(value, context=self.request))
 
 
 class JSONValuesForToggle(JSONValuesForAction):
 
     def computeJSONValues(self, slave, args):
-        expression = slave['toggle_method']
-        if expression:
-            toggle = self.evaluate_method(slave['toggle_method'], args)
+        method = slave['toggle_method']
+        if method:
+            toggle = self.evaluate_method(method, args)
         else:
             hide_values = slave.get('hide_values')
             hide_values = [s.strip() for s in hide_values.split(',')]

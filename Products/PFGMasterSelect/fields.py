@@ -1,6 +1,7 @@
 from Products.ATContentTypes.content import schemata
 from Products.Archetypes import atapi
 from Products.Archetypes.Field import StringField
+from Products.CMFCore import Expression
 from Products.CMFCore.permissions import View
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
@@ -57,8 +58,18 @@ class FormMasterSelectStringField(BaseFormField):
 
     def setSlave_fields(self, slave_fields):
         self.Schema()['slave_fields'].set(self, slave_fields)
-        slave_fields = [field for field in slave_fields if field['toggle_method'] or field['vocab_method'] or field['hide_values']]
-        self.fgField.widget.slave_fields = slave_fields
+
+        def compile_methods(field):
+            field = field.copy()
+            if 'toggle_method' in field:
+                field['toggle_method'] = Expression.Expression('python:' + field['toggle_method']) if field['toggle_method'] else None
+            if 'vocab_method' in field:
+                field['vocab_method'] = Expression.Expression('python:' + field['vocab_method']) if field['vocab_method'] else None
+            return field
+
+        self.fgField.widget.slave_fields = [compile_methods(field)
+                                            for field in slave_fields
+                                            if field.get('toggle_method') or field.get('vocab_method') or field.get('hide_values')]
 
     def getActionVocab(self):
         return atapi.DisplayList((
@@ -120,8 +131,18 @@ class FormMasterMultiSelectStringField(BaseFormField):
 
     def setSlave_fields(self, slave_fields):
         self.Schema()['slave_fields'].set(self, slave_fields)
-        slave_fields = [field for field in slave_fields if field['toggle_method'] or field['vocab_method'] or field['hide_values']]
-        self.fgField.widget.slave_fields = slave_fields
+
+        def compile_methods(field):
+            field = field.copy()
+            if 'toggle_method' in field:
+                field['toggle_method'] = Expression.Expression('python:' + field['toggle_method']) if field['toggle_method'] else None
+            if 'vocab_method' in field:
+                field['vocab_method'] = Expression.Expression('python:' + field['vocab_method']) if field['vocab_method'] else None
+            return field
+
+        self.fgField.widget.slave_fields = [compile_methods(field)
+                                            for field in slave_fields
+                                            if field.get('toggle_method') or field.get('vocab_method') or field.get('hide_values')]
 
     def getActionVocab(self):
         return atapi.DisplayList((
