@@ -2,7 +2,7 @@ language: python
 python:
   - "2.7"
 install:
-  - python bootstrap.py --buildout-version=2.5.3
+  - python bootstrap.py --version=2.5.3
   - bin/buildout -c test-4.3.x.cfg
 script:
   - bin/test
