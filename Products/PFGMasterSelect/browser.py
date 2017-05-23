@@ -14,6 +14,10 @@ from zope.i18n import translate
 class Migration(BrowserView):
 
     def fix_write_permissions(self):
+        from plone.protect.interfaces import IDisableCSRFProtection
+        from zope.interface import alsoProvides
+        alsoProvides(self.request, IDisableCSRFProtection)
+
         catalog = self.context.portal_catalog
 
         logger = logging.getLogger('PFGMasterSelect')
@@ -23,6 +27,7 @@ class Migration(BrowserView):
 
             from Products.CMFCore.permissions import View
             obj.fgField.write_permission = View
+            obj._p_changed = True
 
             logger.warning('Fixed write permission of object %s' % '/'.join(obj.getPhysicalPath()))
 
