@@ -68,4 +68,12 @@
         permission="cmf.ManagePortal"
         />
 
+    <browser:page
+        name="pfgmasterselect-migrate-to-v02"
+        for="*"
+        class=".browser.Migration"
+        attribute="migrate_to_v02"
+        permission="cmf.ManagePortal"
+        />
+
 </configure>

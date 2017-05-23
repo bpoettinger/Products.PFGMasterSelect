@@ -34,6 +34,24 @@ class Migration(BrowserView):
 
             logger.warning('Fixed write permission of object %s' % '/'.join(obj.getPhysicalPath()))
 
+    def migrate_to_v02(self):
+        from plone.protect.interfaces import IDisableCSRFProtection
+        from zope.interface import alsoProvides
+        alsoProvides(self.request, IDisableCSRFProtection)
+
+        catalog = self.context.portal_catalog
+
+        logger = logging.getLogger('PFGMasterSelect')
+
+        for brain in catalog(portal_type=('FormMasterSelectStringField', 'FormMasterMultiSelectStringField',)):
+            obj = brain.getObject()
+
+            logger.warning('Updating slave field configuration of object %s' % '/'.join(obj.getPhysicalPath()))
+
+            slave_fields = obj.getSlave_fields()
+            obj.setSlave_fields(slave_fields)
+            obj._p_changed = True
+
 
 class SetupSlaves(SetupSlaves):
     pass
