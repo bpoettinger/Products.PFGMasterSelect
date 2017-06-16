@@ -14,6 +14,9 @@ from Products.PloneFormGen.content.form import FormFolder
 from zope.i18n import translate
 
 
+logger = logging.getLogger('PFGMasterSelect')
+
+
 class Migration(BrowserView):
 
     def fix_write_permissions(self):
@@ -22,8 +25,6 @@ class Migration(BrowserView):
         alsoProvides(self.request, IDisableCSRFProtection)
 
         catalog = self.context.portal_catalog
-
-        logger = logging.getLogger('PFGMasterSelect')
 
         for brain in catalog(portal_type=('FormMasterSelectStringField', 'FormMasterMultiSelectStringField',)):
             obj = brain.getObject()
@@ -40,8 +41,6 @@ class Migration(BrowserView):
         alsoProvides(self.request, IDisableCSRFProtection)
 
         catalog = self.context.portal_catalog
-
-        logger = logging.getLogger('PFGMasterSelect')
 
         for brain in catalog(portal_type=('FormMasterSelectStringField', 'FormMasterMultiSelectStringField',)):
             obj = brain.getObject()
@@ -62,19 +61,35 @@ class JSONValuesForAction(JSONValuesForAction):
     def evaluate_method(self, method, args):
         assert method
         assert isinstance(method, Expression.Expression)
-        # Assumptions:
-        # There are two possibilities: This is called on a (a) single select field or (b) multi select field.
-        # In case (a) there should always be exactly one value, hence len(args) == 1, and it should not be a
-        # dictionary. On the other hand in case (b) there can be an arbitrary count of elements selected and all
-        # elements are stored in dictionaries.
-        if len(args) == 0 or isinstance(args[0], dict):
-            data = dict(values=[str(arg['val']) for arg in args if arg['selected']])
-        else:
-            assert len(args) == 1
-            data = dict(value=str(args[0]))
 
-        econtext = getEngine().getContext(data)
-        return method(econtext) if method else None
+        if method:
+            # Assumptions:
+            # There are two possibilities: This is called on a (a) single select field or (b) multi select field.
+            # In case (a) there should always be exactly one value, hence len(args) == 1, and it should not be a
+            # dictionary. On the other hand in case (b) there can be an arbitrary count of elements selected and all
+            # elements are stored in dictionaries.
+            if len(args) == 0 or isinstance(args[0], dict):
+                data = dict(values=[str(arg['val']) for arg in args if arg['selected']])
+            else:
+                assert len(args) == 1
+                data = dict(value=str(args[0]))
+
+            econtext = getEngine().getContext(data)
+
+            try:
+                result = method(econtext)
+            except Exception as e:
+                logger.error('%s for "%s %s" of %s/%s crashed: %s',
+                             'vocab_method' if self.action in ('vocabulary', 'value') else 'toggle_method',
+                             self.action,
+                             self.slaveid,
+                             '/'.join(self.context.getPhysicalPath()),
+                             self.field,
+                             e)
+                result = None
+            return result
+        else:
+            return None
 
     def getSlaves(self, fieldname):
         assert isinstance(self.context, FormFolder)
