@@ -14,6 +14,9 @@ from Products.CMFCore import utils
 PFGMasterSelectMessageFactory = MessageFactory('Products.PFGMasterSelect')
 
 
+from Products.PFGMasterSelect import validators
+
+
 def initialize(context):
     """Initializer called when used as a Zope 2 product.
 

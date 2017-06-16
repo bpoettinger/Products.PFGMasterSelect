@@ -59,6 +59,7 @@ FormMasterSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema
                   allow_delete=True,
                   allow_reorder=True,
                   columns=('name', 'action', 'vocab_method', 'toggle_method', 'hide_values'),
+                  validators=('isColumnFilled', 'isSlaveConfigValid',),
                   widget=DataGridWidget(label='Slave Fields',
                                         description='Configure actions applied on other fields of the Form Folder '
                                                     'when changing this fields state. vocab_method and toggle_method '
@@ -101,6 +102,7 @@ FormMasterMultiSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.S
                   allow_delete=True,
                   allow_reorder=True,
                   columns=('name', 'action', 'vocab_method', 'toggle_method', 'hide_values'),
+                  validators=('isColumnFilled', 'isSlaveConfigValid',),
                   widget=DataGridWidget(label='Slave Fields',
                                         description='Configure actions applied on other fields of the Form Folder '
                                                     'when changing this fields state. vocab_method and toggle_method '
