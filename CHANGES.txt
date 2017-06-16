@@ -1,11 +1,6 @@
 Changelog
 =========
 
-0.1 (2017-03)
-----------------
-
-- Proof of concept
-
 0.2 (2017-05-19)
 ----------------
 
@@ -15,3 +10,8 @@ Changelog
 - Refine the slave fields widget descriptions regarding the method fields
 - Replace eval by Plone's tales expressions
 - Add documentation
+
+0.1 (2017-03)
+----------------
+
+- Proof of concept

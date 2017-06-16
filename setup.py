@@ -19,11 +19,6 @@ long_description = (
     + '\n' +
     read('CHANGES.txt')
     + '\n' +
-    'Detailed Documentation\n'
-    '**********************\n'
-    + '\n' +
-    read('Products', 'PFGMasterSelect', 'README.txt')
-    + '\n' +
     'Contributors\n'
     '************\n'
     + '\n' +
@@ -42,11 +37,14 @@ setup(name='Products.PFGMasterSelect',
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
+        'Development Status :: 4 - Beta',
         'Framework :: Plone',
+        'Framework :: Plone :: 4.3',
         'Intended Audience :: Developers',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Operating System :: OS Independent',
         ],
       keywords='Plone PloneFormGen MasterSelectWidget',
       author='Bernhard Pöttinger',
