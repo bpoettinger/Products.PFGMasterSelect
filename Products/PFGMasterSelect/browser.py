@@ -5,10 +5,16 @@ import logging
 import Products
 from App.Common import aq_base
 from Products.Archetypes import DisplayList
+from Products.CMFCore import Expression
+from Products.CMFCore.Expression import getExprContext
 from Products.Five import BrowserView
 from Products.MasterSelectWidget.browser import JSONValuesForAction, SetupSlaves
+from Products.PageTemplates.Expressions import getEngine
 from Products.PloneFormGen.content.form import FormFolder
 from zope.i18n import translate
+
+
+logger = logging.getLogger('PFGMasterSelect')
 
 
 class Migration(BrowserView):
@@ -20,8 +26,6 @@ class Migration(BrowserView):
 
         catalog = self.context.portal_catalog
 
-        logger = logging.getLogger('PFGMasterSelect')
-
         for brain in catalog(portal_type=('FormMasterSelectStringField', 'FormMasterMultiSelectStringField',)):
             obj = brain.getObject()
 
@@ -31,6 +35,22 @@ class Migration(BrowserView):
 
             logger.warning('Fixed write permission of object %s' % '/'.join(obj.getPhysicalPath()))
 
+    def migrate_to_v02(self):
+        from plone.protect.interfaces import IDisableCSRFProtection
+        from zope.interface import alsoProvides
+        alsoProvides(self.request, IDisableCSRFProtection)
+
+        catalog = self.context.portal_catalog
+
+        for brain in catalog(portal_type=('FormMasterSelectStringField', 'FormMasterMultiSelectStringField',)):
+            obj = brain.getObject()
+
+            logger.warning('Updating slave field configuration of object %s' % '/'.join(obj.getPhysicalPath()))
+
+            slave_fields = obj.getSlave_fields()
+            obj.setSlave_fields(slave_fields)
+            obj._p_changed = True
+
 
 class SetupSlaves(SetupSlaves):
     pass
@@ -39,35 +59,54 @@ class SetupSlaves(SetupSlaves):
 class JSONValuesForAction(JSONValuesForAction):
 
     def evaluate_method(self, method, args):
+        assert method
+        assert isinstance(method, Expression.Expression)
+
         # Assumptions:
         # There are two possibilities: This is called on a (a) single select field or (b) multi select field.
         # In case (a) there should always be exactly one value, hence len(args) == 1, and it should not be a
         # dictionary. On the other hand in case (b) there can be an arbitrary count of elements selected and all
         # elements are stored in dictionaries.
         if len(args) == 0 or isinstance(args[0], dict):
-            l = dict(values=[arg['val'] for arg in args if arg['selected']])
+            data = dict(values=[str(arg['val']) for arg in args if arg['selected']])
         else:
             assert len(args) == 1
-            l = dict(value=args[0])
-        g = dict(__builtins__=globals()['__builtins__'])
-        return eval(method, g, l) if method else None
+            data = dict(value=str(args[0]))
+
+        econtext = getEngine().getContext(data)
+
+        try:
+            result = method(econtext)
+        except Exception as e:
+            logger.error('%s for "%s %s" of %s/%s crashed: %s',
+                         'vocab_method' if self.action in ('vocabulary', 'value') else 'toggle_method',
+                         self.action,
+                         self.slaveid,
+                         '/'.join(self.context.getPhysicalPath()),
+                         self.field,
+                         e)
+            result = None
+        return result
 
     def getSlaves(self, fieldname):
-        assert isinstance(self.context, FormFolder)
+        #assert isinstance(self.context, FormFolder)
 
         field_object = self.context.findFieldObjectByName(fieldname)
         slave_fields = field_object.fgField.widget.slave_fields or ()
         return slave_fields
 
     def __call__(self):
-        assert isinstance(aq_base(self.context), FormFolder)
+        #assert isinstance(aq_base(self.context), FormFolder)
         return Products.MasterSelectWidget.browser.JSONValuesForAction.__call__(self)
 
 
 class JSONValuesForVocabularyChange(JSONValuesForAction):
 
     def computeJSONValues(self, slave, args):
-        vocabulary = self.evaluate_method(slave['vocab_method'], args)
+        method = slave['vocab_method']
+        vocabulary = self.evaluate_method(method, args) if method else ()
+        if not isinstance(vocabulary, (list, tuple,)):
+            vocabulary = (vocabulary,)
         vocabulary = [str(item) for item in vocabulary]
         vocabulary = DisplayList(zip(vocabulary, vocabulary))
 
@@ -82,28 +121,21 @@ class JSONValuesForVocabularyChange(JSONValuesForAction):
 class JSONValuesForValueUpdate(JSONValuesForAction):
 
     def computeJSONValues(self, slave, args):
-        value = self.evaluate_method(slave['vocab_method'], args)
+        method = slave['vocab_method']
+        value = self.evaluate_method(method, args) if method else None
         return json.dumps(translate(value, context=self.request))
 
 
 class JSONValuesForToggle(JSONValuesForAction):
 
     def computeJSONValues(self, slave, args):
-        expression = slave['toggle_method']
-        if expression:
-            toggle = self.evaluate_method(slave['toggle_method'], args)
+        method = slave['toggle_method']
+        if method:
+            toggle = self.evaluate_method(method, args)
         else:
             hide_values = slave.get('hide_values')
-            hide_values = eval(hide_values, None, None) if hide_values else ()
-
-            if not isinstance(hide_values, (list, tuple)):
-                hide_values = (hide_values,)
-            values = []
-            for val in hide_values:
-                if not isinstance(val, str):
-                    val = str(val)
-                values.append(val)
-            toggle = str(args[0]) in values
+            hide_values = [s.strip() for s in hide_values.split(',')]
+            toggle = str(args[0]) in hide_values
 
         action = self.action
         if action in ['disable', 'hide']:

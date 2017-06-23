@@ -1,6 +1,6 @@
 from Products.ATContentTypes.content import schemata
 from Products.Archetypes import atapi
-from Products.Archetypes.Field import StringField
+from Products.CMFCore.Expression import Expression
 from Products.CMFCore.permissions import View
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
@@ -14,6 +14,43 @@ from .interfaces import IFormMasterSelectStringField, IFormMasterMultiSelectStri
 from Products.PFGMasterSelect.config import PROJECTNAME
 
 
+class FormMasterSelectFieldMixin:
+
+    def setSlave_fields(self, slave_fields):
+        self.Schema()['slave_fields'].set(self, slave_fields)
+
+        def compile_methods(field):
+            field = field.copy()
+            if 'toggle_method' in field:
+                toggle_method = field['toggle_method']
+                field['toggle_method'] = Expression('python:' + toggle_method) if toggle_method else None
+            if 'vocab_method' in field:
+                vocab_method = field['vocab_method']
+                field['vocab_method'] = Expression('python:' + vocab_method) if vocab_method else None
+            return field
+
+        self.fgField.widget.slave_fields = [compile_methods(field)
+                                            for field in slave_fields
+                                            if field.get('toggle_method')
+                                            or field.get('vocab_method')
+                                            or field.get('hide_values')]
+
+    def getActionVocab(self):
+        return atapi.DisplayList((
+            ('hide', 'Hide'),
+            ('show', 'Show'),
+            ('enable', 'Enable'),
+            ('disable', 'Disable'),
+            ('value', 'Value'),
+            ('vocabulary', 'Vocabulary'),
+        ))
+
+    def getNameVocab(self):
+        folder = self.aq_parent
+        fieldNames = [field.getName() for field in folder.fgFields()]
+        return atapi.DisplayList(zip(fieldNames, fieldNames))
+
+
 FormMasterSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema((
     vocabularyField,
     vocabularyOverrideField,
@@ -22,10 +59,13 @@ FormMasterSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema
                   allow_delete=True,
                   allow_reorder=True,
                   columns=('name', 'action', 'vocab_method', 'toggle_method', 'hide_values'),
+                  validators=('isColumnFilled', 'isSlaveConfigValid',),
                   widget=DataGridWidget(label='Slave Fields',
                                         description='Configure actions applied on other fields of the Form Folder '
-                                                    'when changing this fields state. The new value of this field '
-                                                    'is available as "value" in vocab_method and toggle_method.',
+                                                    'when changing this fields state. vocab_method and toggle_method '
+                                                    'expect python expressions evaluating to a boolean. The new value '
+                                                    'of this field is available as "value" of type string in '
+                                                    'vocab_method and toggle_method.',
                                         columns={
                                               'name': SelectColumn('Name', 'getNameVocab'),
                                               'action': SelectColumn('Action', 'getActionVocab'),
@@ -36,7 +76,7 @@ FormMasterSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema
 schemata.finalizeATCTSchema(FormMasterSelectFieldSchema, moveDiscussion=False)
 
 
-class FormMasterSelectStringField(BaseFormField):
+class FormMasterSelectStringField(BaseFormField, FormMasterSelectFieldMixin):
 
     implements(IFormMasterSelectStringField)
 
@@ -53,25 +93,6 @@ class FormMasterSelectStringField(BaseFormField):
                                              write_permission=View,
                                              widget=MasterSelectWidget(slave_fields=[]))
 
-    def setSlave_fields(self, slave_fields):
-        self.Schema()['slave_fields'].set(self, slave_fields)
-        self.fgField.widget.slave_fields = slave_fields
-
-    def getActionVocab(self):
-        return atapi.DisplayList((
-            ('hide', 'Hide'),
-            ('show', 'Show'),
-            ('enable', 'Enable'),
-            ('disable', 'Disable'),
-            ('value', 'Value'),
-            ('vocabulary', 'Vocabulary'),
-        ))
-
-    def getNameVocab(self):
-        folder = self.aq_parent
-        fieldNames = [field.getName() for field in folder.fgFields()]
-        return atapi.DisplayList(zip(fieldNames, fieldNames))
-
 
 FormMasterMultiSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.Schema((
     vocabularyField,
@@ -81,11 +102,13 @@ FormMasterMultiSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.S
                   allow_delete=True,
                   allow_reorder=True,
                   columns=('name', 'action', 'vocab_method', 'toggle_method', 'hide_values'),
+                  validators=('isColumnFilled', 'isSlaveConfigValid',),
                   widget=DataGridWidget(label='Slave Fields',
                                         description='Configure actions applied on other fields of the Form Folder '
-                                                    'when changing this fields state. The currently selected values of '
-                                                    'this field is available as "values" in vocab_method and '
-                                                    'toggle_method.',
+                                                    'when changing this fields state. vocab_method and toggle_method '
+                                                    'expect python expressions evaluating to a boolean. The selected '
+                                                    'values of this field are available as "values" of type list of '
+                                                    'strings in vocab_method and toggle_method.',
                                         columns={
                                          'name': SelectColumn('Name', 'getNameVocab'),
                                          'action': SelectColumn('Action', 'getActionVocab'),
@@ -96,7 +119,7 @@ FormMasterMultiSelectFieldSchema = BaseFieldSchemaStringDefault.copy() + atapi.S
 schemata.finalizeATCTSchema(FormMasterMultiSelectFieldSchema, moveDiscussion=False)
 
 
-class FormMasterMultiSelectStringField(BaseFormField):
+class FormMasterMultiSelectStringField(BaseFormField, FormMasterSelectFieldMixin):
 
     implements(IFormMasterMultiSelectStringField)
 
@@ -113,25 +136,6 @@ class FormMasterMultiSelectStringField(BaseFormField):
                                             multiValued=True,
                                             write_permission=View,
                                             widget=MasterMultiSelectWidget(slave_fields=[]))
-
-    def setSlave_fields(self, slave_fields):
-        self.Schema()['slave_fields'].set(self, slave_fields)
-        self.fgField.widget.slave_fields = slave_fields
-
-    def getActionVocab(self):
-        return atapi.DisplayList((
-            ('hide', 'Hide'),
-            ('show', 'Show'),
-            ('enable', 'Enable'),
-            ('disable', 'Disable'),
-            ('value', 'Value'),
-            ('vocabulary', 'Vocabulary'),
-        ))
-
-    def getNameVocab(self):
-        folder = self.aq_parent
-        fieldNames = [field.getName() for field in folder.fgFields()]
-        return atapi.DisplayList(zip(fieldNames, fieldNames))
 
 
 atapi.registerType(FormMasterSelectStringField, PROJECTNAME)

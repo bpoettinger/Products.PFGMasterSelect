@@ -1,8 +1,20 @@
 Changelog
 =========
 
-0.1 (xxxx-xx-xx)
+0.2 (2017-05-19)
 ----------------
 
-- Created recipe with ZopeSkel
-  [""]
+- Fix bug related to Datagridfield providing empty rows
+- Fix type confusion after roundtrip by forcing every value to type string
+- Use plain string comparison for hide_values instead of python expressions evaluating to a value or a collection
+- Refine the slave fields widget descriptions regarding the method fields
+- Replace eval by Plone's tales expressions
+- Add documentation
+- Validator for toggle and vocabulary expressions and runtime exception logging
+- Hide fields in navigationq (as PFG does)
+- Do not subject the fields to workflows (as PFG doesn't)
+
+0.1 (2017-03)
+----------------
+
+- Proof of concept

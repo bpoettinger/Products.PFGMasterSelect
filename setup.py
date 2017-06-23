@@ -9,20 +9,15 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-version = '0.1'
+version = '0.2'
 
 long_description = (
-    read('README.txt')
+    read('README.rst')
     + '\n' +
     'Change history\n'
     '**************\n'
     + '\n' +
     read('CHANGES.txt')
-    + '\n' +
-    'Detailed Documentation\n'
-    '**********************\n'
-    + '\n' +
-    read('Products', 'PFGMasterSelect', 'README.txt')
     + '\n' +
     'Contributors\n'
     '************\n'
@@ -32,7 +27,8 @@ long_description = (
     'Download\n'
     '********\n')
 
-tests_require = ['zope.testing']
+tests_require = ['zope.testing', 'plone.testing', 'plone.app.testing', 'mock']
+
 
 setup(name='Products.PFGMasterSelect',
       version=version,
@@ -41,21 +37,27 @@ setup(name='Products.PFGMasterSelect',
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
+        'Development Status :: 4 - Beta',
         'Framework :: Plone',
+        'Framework :: Plone :: 4.3',
         'Intended Audience :: Developers',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Operating System :: OS Independent',
         ],
-      keywords='',
-      author='',
-      author_email='',
-      url='http://svn.plone.org/svn/collective/',
+      keywords='Plone PloneFormGen MasterSelectWidget',
+      author='Bernhard Pöttinger',
+      author_email='bernhard.poettinger@tngtech.com',
+      url='https://github.com/bpoettinger/Products.PFGMasterSelect',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
       namespace_packages=['Products', ],
       include_package_data=True,
       zip_safe=False,
       install_requires=['setuptools',
-                        # -*- Extra requirements: -*-
+                        # -*- Extra requirements: -*-,
+                        'Products.PloneFormGen',
                         'Products.MasterSelectWidget',
                         'Products.DataGridField',
                         ],
