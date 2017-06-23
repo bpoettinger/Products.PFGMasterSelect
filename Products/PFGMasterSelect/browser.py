@@ -62,44 +62,41 @@ class JSONValuesForAction(JSONValuesForAction):
         assert method
         assert isinstance(method, Expression.Expression)
 
-        if method:
-            # Assumptions:
-            # There are two possibilities: This is called on a (a) single select field or (b) multi select field.
-            # In case (a) there should always be exactly one value, hence len(args) == 1, and it should not be a
-            # dictionary. On the other hand in case (b) there can be an arbitrary count of elements selected and all
-            # elements are stored in dictionaries.
-            if len(args) == 0 or isinstance(args[0], dict):
-                data = dict(values=[str(arg['val']) for arg in args if arg['selected']])
-            else:
-                assert len(args) == 1
-                data = dict(value=str(args[0]))
-
-            econtext = getEngine().getContext(data)
-
-            try:
-                result = method(econtext)
-            except Exception as e:
-                logger.error('%s for "%s %s" of %s/%s crashed: %s',
-                             'vocab_method' if self.action in ('vocabulary', 'value') else 'toggle_method',
-                             self.action,
-                             self.slaveid,
-                             '/'.join(self.context.getPhysicalPath()),
-                             self.field,
-                             e)
-                result = None
-            return result
+        # Assumptions:
+        # There are two possibilities: This is called on a (a) single select field or (b) multi select field.
+        # In case (a) there should always be exactly one value, hence len(args) == 1, and it should not be a
+        # dictionary. On the other hand in case (b) there can be an arbitrary count of elements selected and all
+        # elements are stored in dictionaries.
+        if len(args) == 0 or isinstance(args[0], dict):
+            data = dict(values=[str(arg['val']) for arg in args if arg['selected']])
         else:
-            return None
+            assert len(args) == 1
+            data = dict(value=str(args[0]))
+
+        econtext = getEngine().getContext(data)
+
+        try:
+            result = method(econtext)
+        except Exception as e:
+            logger.error('%s for "%s %s" of %s/%s crashed: %s',
+                         'vocab_method' if self.action in ('vocabulary', 'value') else 'toggle_method',
+                         self.action,
+                         self.slaveid,
+                         '/'.join(self.context.getPhysicalPath()),
+                         self.field,
+                         e)
+            result = None
+        return result
 
     def getSlaves(self, fieldname):
-        assert isinstance(self.context, FormFolder)
+        #assert isinstance(self.context, FormFolder)
 
         field_object = self.context.findFieldObjectByName(fieldname)
         slave_fields = field_object.fgField.widget.slave_fields or ()
         return slave_fields
 
     def __call__(self):
-        assert isinstance(aq_base(self.context), FormFolder)
+        #assert isinstance(aq_base(self.context), FormFolder)
         return Products.MasterSelectWidget.browser.JSONValuesForAction.__call__(self)
 
 
