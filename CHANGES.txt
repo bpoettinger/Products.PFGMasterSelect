@@ -10,6 +10,9 @@ Changelog
 - Refine the slave fields widget descriptions regarding the method fields
 - Replace eval by Plone's tales expressions
 - Add documentation
+- Validator for toggle and vocabulary expressions and runtime exception logging
+- Hide fields in navigationq (as PFG does)
+- Do not subject the fields to workflows (as PFG doesn't)
 
 0.1 (2017-03)
 ----------------
